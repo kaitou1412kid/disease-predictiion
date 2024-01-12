@@ -4,7 +4,7 @@ from .models import CustomUser
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
-        fields = ["id", "email", "username", "location", "blood_group", "phone_number", "weight", "height", "bmi"]
+        fields = ["id", "email", "username", "location", "phone_number", "weight", "height", "bmi"]
 
 class UserSignupSerializer(serializers.ModelSerializer):
     class Meta:
@@ -20,3 +20,7 @@ class ActivationSerializer(serializers.Serializer):
     class Meta:
         model = CustomUser
         fields = ['activation_code']
+
+class ResetSerializer(serializers.Serializer):
+    old_password = serializers.CharField()
+    password = serializers.CharField()

@@ -1,4 +1,3 @@
-from django.shortcuts import render
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -13,9 +12,9 @@ from django.utils.html import strip_tags
 from django.core.mail import EmailMultiAlternatives
 # Create your views here.
 # dp_backend/views.py
+from django.contrib.auth.hashers import check_password
 
-
-from .serializers import UserSerializer, UserSignupSerializer, UserLoginSerializer, ActivationSerializer
+from .serializers import UserSerializer, UserSignupSerializer, UserLoginSerializer, ActivationSerializer, ResetSerializer
 
 class UserSignupView(APIView):
     permission_classes = [AllowAny]
@@ -73,6 +72,20 @@ class ActivationView(APIView):
                 user.save()
                 return Response({"success": True})
         return Response({"erroor":"Enter the activation code"})
+
+class PasswordResetView(APIView):
+    permission_classes = [IsAuthenticated]
+    def put(self, request):
+        serializer = ResetSerializer(data = request.data)
+        if serializer.is_valid():
+            user = request.user
+            if check_password(request.data["old_password"], user.password):
+                user.set_password(request.data["password"])
+                user.save()
+                return Response({"message":"Password Changed Succesfully"})
+            else:
+                return Response({"message":"Password doesnot match"})
+        return Response(serializer.errors)
 
 
             
