@@ -3,7 +3,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.authtoken.models import Token
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.contrib.auth import authenticate, login
 from django.core.mail import send_mail
 from django.conf import settings
@@ -15,7 +15,7 @@ from django.core.mail import EmailMultiAlternatives
 # dp_backend/views.py
 
 
-from .serializers import UserSerializer, UserSignupSerializer, UserLoginSerializer
+from .serializers import UserSerializer, UserSignupSerializer, UserLoginSerializer, ActivationSerializer
 
 class UserSignupView(APIView):
     permission_classes = [AllowAny]
@@ -26,19 +26,27 @@ class UserSignupView(APIView):
         if serializer.is_valid():
             user = serializer.save()
             user.set_password(request.data["password"])
+            user.activation_code = verification_code
             user.save()
-            Token.objects.get_or_create(user=user)
+            token = Token.objects.get_or_create(user=user)
             dynamic_data = {
                 'name' : user.username,
                 'code' : verification_code
             }
             html_content = render_to_string("email.html",dynamic_data)
             plain_message = strip_tags(html_content)
-            # send_mail("Welcome to The App",html_content, settings.EMAIL_HOST_USER, [user.email],fail_silently=False)
             message = EmailMultiAlternatives(subject="Welcome to the App",body=plain_message, from_email=settings.EMAIL_HOST_USER, to=[user.email])
             message.attach_alternative(html_content, "text/html")
-            message.send()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            #Login the users
+            auth_user = authenticate(request, email=serializer.validated_data["email"], password=serializer.validated_data["password"])
+            if auth_user:
+                login(request, auth_user)
+                token, created = Token.objects.get_or_create(user = auth_user)
+                message.send()
+                # verify the verificaation code
+                
+
+            return Response({"data" : serializer.data , "token" : token.key}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class UserLoginView(APIView):
@@ -53,3 +61,18 @@ class UserLoginView(APIView):
                 token, created = Token.objects.get_or_create(user=user)
                 return Response({"token": token.key})
         return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+
+class ActivationView(APIView):
+    permission_classes = [IsAuthenticated]
+    def post(self, request):
+        serializer = ActivationSerializer(data=request.data)
+        if serializer.is_valid():
+            user = request.user
+            if user.activation_code == request.data['activation_code']:
+                user.activated = True
+                user.save()
+                return Response({"success": True})
+        return Response({"erroor":"Enter the activation code"})
+
+
+            

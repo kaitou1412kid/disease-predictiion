@@ -25,12 +25,12 @@ class CustomUser(AbstractBaseUser):
     email = models.EmailField(unique=True)
     username = models.CharField(max_length=30, unique=True)
     location = models.CharField(max_length=100, blank=True)
-    blood_group = models.CharField(max_length=10, blank=True)
     phone_number = models.CharField(max_length=15, blank=True)
     weight = models.FloatField(null=True, blank=True)
     height = models.FloatField(null=True, blank=True)
     bmi = models.FloatField(null=True, blank=True)
-    # activated = models.BooleanField(default=False)
+    activation_code = models.CharField(default="None")
+    activated = models.BooleanField(default=False)
 
     # Other fields as needed
 

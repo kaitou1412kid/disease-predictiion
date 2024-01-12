@@ -16,7 +16,7 @@ class UserLoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField()
 
-# class ActivationSerializer(serializers.Serializer):
-#     class Meta:
-#         model = CustomUser
-#         fields = ["activated"]
+class ActivationSerializer(serializers.Serializer):
+    class Meta:
+        model = CustomUser
+        fields = ['activation_code']
