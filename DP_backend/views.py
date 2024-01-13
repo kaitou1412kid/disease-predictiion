@@ -13,7 +13,7 @@ from django.core.mail import EmailMultiAlternatives
 # Create your views here.
 # dp_backend/views.py
 from django.contrib.auth.hashers import check_password
-
+from .models import CustomUser
 from .serializers import UserSerializer, UserSignupSerializer, UserLoginSerializer, ActivationSerializer, ResetSerializer
 
 class UserSignupView(APIView):
@@ -76,7 +76,7 @@ class ActivationView(APIView):
 class PasswordResetView(APIView):
     permission_classes = [IsAuthenticated]
     def put(self, request):
-        serializer = ResetSerializer(data = request.data)
+        serializer = ResetSerializer(data = request.data, partial=True)
         if serializer.is_valid():
             user = request.user
             if check_password(request.data["old_password"], user.password):
@@ -87,5 +87,27 @@ class PasswordResetView(APIView):
                 return Response({"message":"Password doesnot match"})
         return Response(serializer.errors)
 
-
-            
+class ForgetPasswordEmailSendView(APIView):
+    def put(self, request):
+        serializer = ResetSerializer(data = request.data, partial = True)
+        if serializer.is_valid():
+            user = CustomUser.objects.get(email = request.data["email"])
+            if user:
+                temp_pass = secrets.token_hex(6)
+                dynamic_data = {
+                'name' : user.username,
+                'password' : temp_pass
+                }
+                html_content = render_to_string("forgetpw.html",dynamic_data)
+                plain_message = strip_tags(html_content)
+                message = EmailMultiAlternatives(subject="Passowrd Reset",body=plain_message, from_email=settings.EMAIL_HOST_USER, to=[user.email])
+                message.attach_alternative(html_content, "text/html")    
+                message.send()
+                user.set_password(temp_pass)
+                user.save()
+                # TODO:
+                #set exxpiration day
+                # expiration_time = timezone.now() + timedelta(days=1)
+                return Response({"message":"Temporary password is sent to the email"})
+            return Response({"message":"User not found"})
+        return Response(serializer.errors)

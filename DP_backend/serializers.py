@@ -24,3 +24,4 @@ class ActivationSerializer(serializers.Serializer):
 class ResetSerializer(serializers.Serializer):
     old_password = serializers.CharField()
     password = serializers.CharField()
+    email = serializers.EmailField()
