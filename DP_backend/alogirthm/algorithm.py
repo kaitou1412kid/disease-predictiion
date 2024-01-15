@@ -6,18 +6,33 @@ import numpy as np
 from sklearn.svm import SVC
 from sklearn.naive_bayes import GaussianNB
 from sklearn.ensemble import RandomForestClassifier
+from statistics import mode
 # from django.conf import settings
 # settings.configure()
 # BASE_DIR = settings.BASE_DIR
 # from disease_prediction.settings import BASE_DIR
-BASE_DIR = Path(__file__).resolve().parent.parent
-dataset_folder = os.path.join(BASE_DIR,'dataset')
-disease_dataset_path = os.path.join(dataset_folder, 'data_dict.pkl')
-final_svm_model = SVC()
-final_nb_model = GaussianNB()
-final_rf_model = RandomForestClassifier(random_state=18)
-data_dict = pickle.load(open(disease_dataset_path,'rb'))
+
+
+def initialize():
+    BASE_DIR = Path(__file__).resolve().parent.parent
+    dataset_folder = os.path.join(BASE_DIR,'dataset')
+    disease_dataset_path = os.path.join(dataset_folder, 'data_dict.pkl')
+    disease_dataset_path2 = os.path.join(dataset_folder, 'disease.pkl')
+    final_svm_model = SVC()
+    final_nb_model = GaussianNB()
+    final_rf_model = RandomForestClassifier(random_state=18)
+    data_dict = pickle.load(open(disease_dataset_path,'rb'))
+    data = pickle.load(open(disease_dataset_path2,'rb'))
+    X = data.iloc[:,:-1]
+    y = data.iloc[:,-1]
+    final_svm_model.fit(X,y)
+    final_nb_model.fit(X, y)
+    final_rf_model.fit(X, y)
+    return data_dict, final_svm_model, final_nb_model, final_rf_model
+    
+    
 def predict_disease(symptoms):
+    data_dict, final_svm_model, final_nb_model, final_rf_model = initialize() 
     symptoms = symptoms.split(',')
     #creating input data for models
     input_data = [0] * len(data_dict["symptom_index"])
@@ -44,7 +59,4 @@ def predict_disease(symptoms):
 		"final_prediction":final_prediction
 	}
     return predictions
-
-prediction = predict_disease("Skin Rash,Nodal Skin Eruptions,Continuous Sneezing")
-print(prediction)
     

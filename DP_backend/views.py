@@ -14,8 +14,8 @@ from django.core.mail import EmailMultiAlternatives
 # dp_backend/views.py
 from django.contrib.auth.hashers import check_password
 from .models import CustomUser
-from .serializers import UserSerializer, UserSignupSerializer, UserLoginSerializer, ActivationSerializer, ResetSerializer
-
+from .serializers import UserSerializer, UserSignupSerializer, UserLoginSerializer, ActivationSerializer, ResetSerializer, DiseasePredictSerializer
+from .alogirthm.algorithm import predict_disease
 class UserSignupView(APIView):
     permission_classes = [AllowAny]
 
@@ -111,3 +111,12 @@ class ForgetPasswordEmailSendView(APIView):
                 return Response({"message":"Temporary password is sent to the email"})
             return Response({"message":"User not found"})
         return Response(serializer.errors)
+    
+class DiseasePredictionView(APIView):
+    permission_classes = [IsAuthenticated]
+    def post(self, request):
+        serializer = DiseasePredictSerializer(data = request.data)
+        if serializer.is_valid():
+            predictions = predict_disease(request.data['diseases'])
+            return Response(predictions)
+        return Response(serializer.erros)

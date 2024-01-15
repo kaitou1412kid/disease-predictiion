@@ -25,3 +25,6 @@ class ResetSerializer(serializers.Serializer):
     old_password = serializers.CharField()
     password = serializers.CharField()
     email = serializers.EmailField()
+    
+class DiseasePredictSerializer(serializers.Serializer):
+    diseases = serializers.CharField()
