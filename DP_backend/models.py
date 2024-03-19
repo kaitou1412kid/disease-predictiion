@@ -24,14 +24,6 @@ class CustomUserManager(BaseUserManager):
 class CustomUser(AbstractBaseUser):
     email = models.EmailField(unique=True)
     username = models.CharField(max_length=30, unique=True)
-    location = models.CharField(max_length=100, blank=True)
-    phone_number = models.CharField(max_length=15, blank=True)
-    weight = models.FloatField(null=True, blank=True)
-    height = models.FloatField(null=True, blank=True)
-    bmi = models.FloatField(null=True, blank=True)
-    activation_code = models.CharField(default="None")
-    activated = models.BooleanField(default=False)
-
     # Other fields as needed
 
     is_active = models.BooleanField(default=True)
@@ -39,8 +31,13 @@ class CustomUser(AbstractBaseUser):
 
     objects = CustomUserManager()
 
-    USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = ["username"]
+    USERNAME_FIELD = "username"
+    # REQUIRED_FIELDS = ["username"]
 
     def __str__(self):
         return self.username
+    
+class Disease(models.Model):
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    dname = models.CharField(default="Normal")
+    image = models.CharField(default="None")

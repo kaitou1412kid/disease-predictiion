@@ -4,27 +4,17 @@ from .models import CustomUser
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
-        fields = ["id", "email", "username", "location", "phone_number", "weight", "height", "bmi"]
+        fields = ["id", "email", "username"]
 
 class UserSignupSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
-        fields = ["email", "username", "password", "phone_number"]
+        fields = ["username", "password","email"]
         extra_kwargs = {"password": {"write_only": True}}
 
 class UserLoginSerializer(serializers.Serializer):
-    email = serializers.EmailField()
+    username = serializers.CharField()
     password = serializers.CharField()
 
-class ActivationSerializer(serializers.Serializer):
-    class Meta:
-        model = CustomUser
-        fields = ['activation_code']
-
-class ResetSerializer(serializers.Serializer):
-    old_password = serializers.CharField()
-    password = serializers.CharField()
-    email = serializers.EmailField()
-    
-class DiseasePredictSerializer(serializers.Serializer):
-    diseases = serializers.CharField()
+class EyePredictSerializer(serializers.Serializer):
+    image = serializers.ImageField()
